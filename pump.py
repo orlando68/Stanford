@@ -64,7 +64,7 @@ def ColorMap():
     cmp_list    = [ 'viridis','Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
                     'YlOrBr' , 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
                     'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']
-    c_map        = cm.get_cmap(cmp_list[0]+'_r', 256) # ''= normal, '_r' = reversed
+    c_map        = cm.get_cmap(cmp_list[0]+'', 256) # ''= normal, '_r' = reversed
     color_BAR   = c_map(np.linspace(0, 1, 64))
     
     matlab      = 'inicial'    #-----------el de Matlab---------------
@@ -347,8 +347,6 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
     HT   = ax1.text(0.67*(VAL2 - VAL1) + VAL1,0.39*(VAL2 - VAL1) + VAL1, 'MI',ha= 'center')
     HT   = ax1.text(0.67*(VAL2 - VAL1) + VAL1,0.25*(VAL2 - VAL1) + VAL1, 'epochs: '+ str(n_fail4),ha= 'center')
 
-
-#
     # outline the region of unavailability
     coor = np.array([[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[VAL2, VAL2, y_up_bnd, y_up_bnd]  ])
     ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color3,zorder=0))
