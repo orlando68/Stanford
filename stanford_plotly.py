@@ -100,19 +100,19 @@ def plot_ColorBar(dib,RGB_bar,Vref):
                                       fillcolor=RGB_bar[k]),secondary_y=True,row=1, col=2)
     dib.update_xaxes(range=[0.5, 1], showgrid=False,title_text="",showticklabels=False, row=1, col=2)
 #    dib.update_yaxes(range=[0, Vref], showgrid=False ,title_text="yaxis izda2 title" ,secondary_y=False, row=1, col=2)
-    dib.update_yaxes(range=[0, Vref], showgrid=False ,title_text="yaxis dcha2 title" ,secondary_y=True, row=1, col=2)
+    dib.update_yaxes(range=[0, Vref], showgrid=False ,title_text='Number of Points per Pixel' ,secondary_y=True, row=1, col=2)
     
     return
 #------------------------------------------------------------------------------
 def add_text(dib,texto,x0,y0,color):
-    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",orientation ='v',textposition="bottom center",
+    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",orientation ='v',textposition="middle center",
 #                             textfont=dict(family="sans serif", size=18, color=color )
                              ), row=1, col=1)
     return
 #------------------------------------------------------------------------------
 def add_patch(dib,p_x,p_y, color):
     dib.add_shape(go.layout.Shape(type="rect",x0=p_x-0.25,y0=p_y-0.25,x1=p_x+0.25,y1=p_y+0.25,
-                              line=dict(color=color), fillcolor=color), row=1, col=1 )
+                              line=dict(color=color), fillcolor=color),layer = "below", row=1, col=1 )
     return
 #------------------------------------------------------------------------------
 def add_polygon(dib,x_points,y_points,color):
@@ -123,9 +123,8 @@ def add_polygon(dib,x_points,y_points,color):
             camino = camino + ' L'
     camino = camino + ' Z'
     print(camino)
-    
-    dib.add_shape(go.layout.Shape(type="path",path=camino,fillcolor=color),line_color=color, row=1, col=1)
-    
+
+    dib.add_shape(go.layout.Shape(type="path",path=camino,fillcolor=color),line_color=color,layer = "below", opacity=1.0,row=1, col=1)
     
     return
 #------------------------------------------------------------------------------
@@ -548,18 +547,16 @@ def hplstat(HPL,HPE,HAL,src_name):
 #==============================================================================
     plt.figure(figsize=(12,10), dpi=70)
     
-    fig_plotly = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=("Plot 1", ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
+    fig_plotly = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=('Horizontal Performance ['+str(seconds)+' seconds]', ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
     add_polygon(fig_plotly,[0, 50,50,0],[0, 0,50,50],'rgb(255,255,255)')
-    add_polygon(fig_plotly,[HAL,HAL,x_up_bnd,x_up_bnd],[y_lo_bnd,HAL,HAL,y_lo_bnd],'rgb(255,114,111)')
-    add_polygon(fig_plotly,[x_lo_bnd,HAL,HAL],[y_lo_bnd,HAL,y_lo_bnd],'rgb(255,204,203)')
-    add_polygon(fig_plotly,[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[HAL, HAL, y_up_bnd, y_up_bnd],'rgb(253,255,143)')
-    add_polygon(fig_plotly,[HAL, x_up_bnd, x_up_bnd],[HAL, y_up_bnd, HAL],'rgb(255,158,87)')
+    
     
     matplt_cmap,color_bar = ColorMap()
     RGB_bar            = barra_RGB(color_bar) # to generate in  rgb(0.267004,0.004874,0.329415)
     
     
     norm        = mpl.colors.Normalize(vmin=z_lo_bnd, vmax=z_up_bnd)   #-----aqui normalizamos
+    plot_ColorBar(fig_plotly,RGB_bar,z_up_bnd)
     
     ax1         = plt.axes([0.1-0.014, 0.1, .75, .8])
     n_colores   = 64
@@ -573,7 +570,7 @@ def hplstat(HPL,HPE,HAL,src_name):
         
     ax1.axis([x_lo_bnd, x_up_bnd,y_lo_bnd, y_up_bnd])
     ax1.set_xlabel('Error [m]')
-    src_name= 'EGNOS'
+#    src_name= 'EGNOS'
     ax1.set_ylabel(r'$HPL_{'+src_name+'} [m]$')
     ax1.set_title('Horizontal Performance ['+str(seconds)+' seconds]')
     ax1.set_aspect('equal', 'box') 
@@ -633,45 +630,46 @@ def hplstat(HPL,HPE,HAL,src_name):
     # outline the region of integrity failures (RECTANGULO ROJ0)
     coor = np.array([[HAL,HAL,x_up_bnd,x_up_bnd],[y_lo_bnd,HAL,HAL,y_lo_bnd]])
     ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color1,zorder=0))
-    
-#    add_polygon(fig,[4,2,3,4],[1,5,3,4],'rgb(255,114,111)')
-#add_polygon(fig,[7,2,3,4],[3,4,3,4],'rgb(255,204,203)')
-#add_polygon(fig,[8,2,6,4],[9,11,11,4],'rgb(255,158,87)')
-#add_polygon(fig,[4,2,9,3],[20,10,3,4],'rgb(253,255,143)')
-#add_polygon(fig,[6,9,3,9],[30,20,9,4],'rgb(0,0,0)')
-    
-    
-    
+    add_polygon(fig_plotly,[HAL,HAL,x_up_bnd,x_up_bnd],[y_lo_bnd,HAL,HAL,y_lo_bnd],'rgb(255,114,111)')
     HT = ax1.text(0.50*(x_up_bnd - HAL) + HAL, 0.55*(HAL - y_lo_bnd) + y_lo_bnd, 'HMI')
     HT = ax1.text(0.50*(x_up_bnd - HAL) + HAL, 0.45*(HAL - y_lo_bnd) + y_lo_bnd, 'epochs: '+ str(n_fail1))
+    add_text   (fig_plotly,'HMI'                   ,[0.50*(x_up_bnd - HAL) + HAL] , [ 0.55*(HAL - y_lo_bnd) + y_lo_bnd],'black')
+    add_text   (fig_plotly,'epochs: '+ str(n_fail1),[0.50*(x_up_bnd - HAL) + HAL] , [ 0.55*(HAL - y_lo_bnd) + y_lo_bnd],'black')
     
     # outline the region of HPL failures (TRIANGULO inferior)
     coor = np.array([[x_lo_bnd,HAL,HAL],[y_lo_bnd,HAL,y_lo_bnd]])
     ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color2,zorder=0))
-    
+    add_polygon(fig_plotly,[x_lo_bnd,HAL,HAL],[y_lo_bnd,HAL,y_lo_bnd],'rgb(255,204,203)')
     ax1.text(0.67*(HAL - x_lo_bnd) + x_lo_bnd,0.35*(HAL - y_lo_bnd) + y_lo_bnd, 'MI')
     HT = ax1.text(0.67*(HAL - x_lo_bnd) + x_lo_bnd,0.25*(HAL - y_lo_bnd) + y_lo_bnd, 'epochs: '+ str(n_fail2))
- 
+    add_text   (fig_plotly,'MI'                    ,[0.67*(HAL - x_lo_bnd) + x_lo_bnd] , [0.35*(HAL - y_lo_bnd) + y_lo_bnd],'black')
+    add_text   (fig_plotly,'epochs: '+ str(n_fail2),[0.67*(HAL - x_lo_bnd) + x_lo_bnd] , [0.25*(HAL - y_lo_bnd) + y_lo_bnd],'black')
+    
     # outline the region of unavailability  (POLIGONO AMARILLO)
     coor = np.array([[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[HAL, HAL, y_up_bnd, y_up_bnd]])
     ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color3,zorder=0))
+    add_polygon(fig_plotly,[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[HAL, HAL, y_up_bnd, y_up_bnd],'rgb(253,255,143)')
     
     ax1.text     (0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd,0.70*(y_up_bnd - HAL) + HAL, 'System Unavailable')
     HT = ax1.text(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd,0.55*(y_up_bnd - HAL) + HAL, 'epochs: '+ str(n_cont))
+    add_text   (fig_plotly,'System Unavailable'   , [ 0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd],[0.70*(y_up_bnd - HAL) + HAL ] ,'black')
+    add_text   (fig_plotly,'epochs: '+ str(n_cont), [ 0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd],[0.55*(y_up_bnd - HAL) + HAL ] ,'black')
     
     # outline the region where integrity failures and unavailability overlap (TRIANGULO superior)
     coor = np.array([[HAL, x_up_bnd, x_up_bnd],[HAL, y_up_bnd, HAL]])
     ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color4,zorder=0))
-    
+    add_polygon(fig_plotly,[HAL, x_up_bnd, x_up_bnd],[HAL, y_up_bnd, HAL],'rgb(255,158,87)')
     ax1.text     (0.5*(x_up_bnd - HAL) + HAL,0.325*(y_up_bnd - HAL) + HAL, 'MI')
     HT = ax1.text(0.5*(x_up_bnd - HAL) + HAL,0.175*(y_up_bnd - HAL) + HAL, 'epochs: '+ str(n_fail3))
-     
+    
+    add_text   (fig_plotly,'MI'                    , [0.5*(x_up_bnd - HAL) + HAL],[0.325*(y_up_bnd - HAL) + HAL ],'black')
+    add_text   (fig_plotly,'epochs: '+ str(n_fail3), [0.5*(x_up_bnd - HAL) + HAL],[0.175*(y_up_bnd - HAL) + HAL ],'black')
     ax1.grid( linestyle= ':')
     plt.show()
     
 
-    fig_plotly.update_xaxes(range=[x_lo_bnd, x_up_bnd], showgrid=True,title_text="<b>secondary</b> yaxis title xaxis 1 title", gridwidth=1, gridcolor='LightPink', row=1, col=1)
-    fig_plotly.update_yaxes(range=[y_lo_bnd, y_up_bnd], showgrid=True,title_text="yaxis 1 title", gridwidth=1, gridcolor='LightPink', row=1, col=1)
+    fig_plotly.update_xaxes(range=[x_lo_bnd, x_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
+    fig_plotly.update_yaxes(range=[y_lo_bnd, y_up_bnd], showgrid=True,title_text= r'$HPL_{'+src_name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
     fig_plotly.show()
     
     with open('objs.pkl', 'wb') as f:  # Python 3: open(..., 'wb')

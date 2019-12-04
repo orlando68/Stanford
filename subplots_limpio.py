@@ -64,14 +64,14 @@ def plot_ColorBar(dib,RGB_bar,Vref):
     return
 #------------------------------------------------------------------------------
 def add_text(dib,texto,x0,y0,color):
-    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",orientation ='v',textposition="bottom center",
+    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",orientation ='v',textposition="middle center",
 #                             textfont=dict(family="sans serif", size=18, color=color )
                              ), row=1, col=1)
     return
 #------------------------------------------------------------------------------
 def add_patch(dib,p_x,p_y, color):
     dib.add_shape(go.layout.Shape(type="rect",x0=p_x-0.25,y0=p_y-0.25,x1=p_x+0.25,y1=p_y+0.25,
-                              line=dict(color=color), fillcolor=color), row=1, col=1 )
+                              line=dict(color=color), fillcolor=color),layer = "below", row=1, col=1 )
     return
 #------------------------------------------------------------------------------
 def add_polygon(dib,x_points,y_points,color):
