@@ -83,7 +83,7 @@ def add_polygon(dib,x_points,y_points,color):
     camino = camino + ' Z'
     print(camino)
     
-    dib.add_shape(go.layout.Shape(type="path",path=camino,fillcolor=color),line_color=color, row=1, col=1)
+    dib.add_shape(go.layout.Shape(type="path",path=camino,fillcolor=color),line_color=color,layer = "below", opacity=1.0,row=1, col=1)
     
     
     return
@@ -95,69 +95,26 @@ RGB_bar            = barra_RGB(color_barra) # to generate in  rgb(0.267004,0.004
 
 
 
-fig = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=("Plot 1", ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
-
-
-
-
-
-#fig.add_shape(go.layout.Shape(type="path",path=" M 4,4 L 1,8 L 3,9 L3,8 L4,6 L4,5 Z",fillcolor=RGB_bar[0]),line_color=RGB_bar[0], row=1, col=1)
-#fig.update_layout(shapes=[go.layout.Shape (type="path",path=" M 4,4 L 1,8 L 3,9 L3,8 L4,6 L4,5 Z",fillcolor=RGB_bar[0],line_color=RGB_bar[0], row=1, col=1)   ])
+fig = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=("Plot 1", r'$HPL_{pepe} [m]$'),specs=[[{"secondary_y": False}, {"secondary_y": True}]])
 
 
 
 Vref = 155
 plot_ColorBar(fig,RGB_bar,Vref)
-#------------------Crear el colorbar-------------------------------------
-#D    = Vref/64
-#d    = D/2
-#
-##fig.add_trace(
-##    go.Scatter(x=[2, 3, 4], y=[4, 5, 6], name="yaxis2 data"),
-##    secondary_y=True,)
-#
-#for k in range(64):
-#    p_x = 1
-#    p_y = k*D+d
-#    fig.add_shape(go.layout.Shape(type="rect",x0=p_x-d,y0=p_y-d,x1=p_x+d,y1=p_y+d,
-#                                  line=dict(color=RGB_bar[k]),
-#                                  fillcolor=RGB_bar[k]),row=1, col=2)
-#fig.update_xaxes(range=[0.5, 1], showgrid=False,title_text="xaxis 2 title",showticklabels=False, row=1, col=2)
-#fig.update_yaxes(range=[0, Vref], showgrid=False ,title_text="yaxis 2 title" , row=1, col=2)
-#------------------------------------------------------------------------------
-#fig.add_trace(go.Scatter(x=[20, 30, 40], y=[50, 60, 70]),
-#              row=1, col=2)
 
 
+p_x = 2.3
+p_y = 2.1
 
+add_polygon(fig,[4,2,3,4],[1,5,3,4],'rgb(255,114,111)')
+add_polygon(fig,[7,2,3,4],[3,4,3,4],'rgb(255,204,203)')
+add_polygon(fig,[8,2,6,4],[9,11,11,4],'rgb(255,158,87)')
+add_polygon(fig,[4,2,9,3],[20,10,3,4],'rgb(253,255,143)')
+add_polygon(fig,[6,9,3,9],[30,20,9,4],'rgb(0,0,0)')
+add_patch  (fig,p_x,p_y,'red')
+add_text   (fig,'orlando',[5],[5],'black')
 
-p_x = 2
-p_y = 2
-#fig.add_shape(go.layout.Shape(type="path",path=" M 1,1 L 3,1 L 2,2 Z",fillcolor=RGB_bar[30]),line_color=RGB_bar[30], row=1, col=1)
-
-#fig.add_shape(go.layout.Shape(type="rect",x0=p_x-0.25,y0=p_y-0.25,x1=p_x+0.25,y1=p_y+0.25,
-#                              line=dict(color='red'), fillcolor='red'), row=1, col=1 )
-
-
-
-
-#fig.add_trace(go.Scatter(x=[2],y=[2],text=["Unfilled Rectangle"], mode="text",orientation ='v',textposition="bottom center",
-#                         textfont=dict(
-#                        family="sans serif",
-#                        size=18,
-#                        color="LightSeaGreen"
-#                    )), row=1, col=1)
-
-
-add_polygon(fig,[4.3,2,3,4],[1,2.45,3,4],RGB_bar[60])
-add_patch(fig,p_x,p_y,'red')
-add_text(fig,'orlando',[5],[5],'black')
-
-fig.update_xaxes(range=[0, 10], showgrid=True,title_text="<b>secondary</b> yaxis title xaxis 1 title", gridwidth=1, gridcolor='LightPink', row=1, col=1)
-fig.update_yaxes(range=[0, 10], showgrid=True,title_text="yaxis 1 title", gridwidth=1, gridcolor='LightPink', row=1, col=1)
-#fig.update_yaxes(title_text="<b>secondary</b> yaxis title", secondary_y=True)
-
-
-
+fig.update_xaxes(range=[0, 10], showgrid=True,title_text="<b>secondary</b> yaxis title xaxis 1 title", gridwidth=1, gridcolor='LightPink',layer = "below traces", row=1, col=1)
+fig.update_yaxes(range=[0, 10], showgrid=True,title_text="yaxis 1 title", gridwidth=10, gridcolor='LightPink', layer = "above traces",row=1, col=1)
 
 fig.show()
