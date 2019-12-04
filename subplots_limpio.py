@@ -64,7 +64,7 @@ def plot_ColorBar(dib,RGB_bar,Vref):
     return
 #------------------------------------------------------------------------------
 def add_text(dib,texto,x0,y0,color):
-    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",orientation ='v',textposition="middle center",
+    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",textposition="middle center",
 #                             textfont=dict(family="sans serif", size=18, color=color )
                              ), row=1, col=1)
     return
@@ -112,7 +112,8 @@ add_polygon(fig,[8,2,6,4],[9,11,11,4],'rgb(255,158,87)')
 add_polygon(fig,[4,2,9,3],[20,10,3,4],'rgb(253,255,143)')
 add_polygon(fig,[6,9,3,9],[30,20,9,4],'rgb(0,0,0)')
 add_patch  (fig,p_x,p_y,'red')
-add_text   (fig,'orlando',[5],[5],'black')
+#add_text   (fig,'orlando',[5],[5],'black')
+add_text   (fig,['pepe','potamo'],[5,5],[7,9],'black')
 
 fig.update_xaxes(range=[0, 10], showgrid=True,title_text="<b>secondary</b> yaxis title xaxis 1 title", gridwidth=1, gridcolor='LightPink',layer = "below traces", row=1, col=1)
 fig.update_yaxes(range=[0, 10], showgrid=True,title_text="yaxis 1 title", gridwidth=10, gridcolor='LightPink', layer = "above traces",row=1, col=1)

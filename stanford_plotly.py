@@ -457,17 +457,7 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
 #------------------------------------------------------------------------------
 def hplstat(HPL,HPE,HAL,src_name):
         
-    # other colors used in the plot
-    #color1 = [134/255 134/255 134/255] % - dark gray
-    color1 = (1,0.1,0.1,0.75)              # - red (original) 
-    c1_rgb = 'rgb(1,0.1,0.1)'
-    #color2 = [174/255 174/255 174/255] % - middle gray
-    color2 = (1,0.55,0.55,0.75)            # - pink (original)
-    #color3 = [222/255 222/255 222/255] % - light gray
-    color3 = (1,1,0.5,0.75)                 #- yellow (original)
-    #color4 = color2                    % - middle gray
-    color4 = (1,.55,0.30,.75)    
-     
+
     # size of VPL, which should be the same for VPE as well
     n = HPL.shape[1]
 
@@ -545,55 +535,20 @@ def hplstat(HPL,HPE,HAL,src_name):
 
 
 #==============================================================================
-    plt.figure(figsize=(12,10), dpi=70)
-    
+
     fig_plotly = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=('Horizontal Performance ['+str(seconds)+' seconds]', ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
-    add_polygon(fig_plotly,[0, 50,50,0],[0, 0,50,50],'rgb(255,255,255)')
-    
-    
+
     matplt_cmap,color_bar = ColorMap()
     RGB_bar            = barra_RGB(color_bar) # to generate in  rgb(0.267004,0.004874,0.329415)
-    
-    
-    norm        = mpl.colors.Normalize(vmin=z_lo_bnd, vmax=z_up_bnd)   #-----aqui normalizamos
     plot_ColorBar(fig_plotly,RGB_bar,z_up_bnd)
-    
-    ax1         = plt.axes([0.1-0.014, 0.1, .75, .8])
-    n_colores   = 64
-    for k in df_STFD.index:
-        rect = patches.Rectangle( (df_STFD.loc[k,'X']-0.25, df_STFD.loc[k,'Y']-0.25),
-                                 0.5, 0.5, facecolor = color_bar[df_STFD.loc[k,'c_idx']])
-        ax1.add_patch(rect)    
-#        print(df_STFD.loc[k,'X'],df_STFD.loc[k,'Y'])
-        add_patch  (fig_plotly,df_STFD.loc[k,'X'],df_STFD.loc[k,'Y'],RGB_bar[df_STFD.loc[k,'c_idx']])
-        
-        
-    ax1.axis([x_lo_bnd, x_up_bnd,y_lo_bnd, y_up_bnd])
-    ax1.set_xlabel('Error [m]')
-#    src_name= 'EGNOS'
-    ax1.set_ylabel(r'$HPL_{'+src_name+'} [m]$')
-    ax1.set_title('Horizontal Performance ['+str(seconds)+' seconds]')
-    ax1.set_aspect('equal', 'box') 
-    
-    ax2         = plt.axes([.87-0.014, .1, .025, .8])
-    cb1         = mpl.colorbar.ColorbarBase(ax2, cmap = matplt_cmap, norm = norm, orientation = 'vertical')    
-    cb1.set_label('Number of Points per Pixel')
-    
 
     # determine availability and # of integrity failures
-
     i_diag1 = np.where(err_bin == HAL);
     i_diag2 = np.where(err_bin < HAL);
     i_diag3 = np.where(err_bin > HAL);
-    
     cond1  = np.where(err_bin[j0] >= HAL)[0]
     cond2  = np.where(sig_bin[i0] < HAL)[0]
     i_fail1 = np.intersect1d(cond1, cond2)
-#    print(i_fail1,i0[i_fail1],j0[i_fail1],data[i0[i_fail1],j0[i_fail1]],diagonal[i_diag1])
-#    print(np.diag( data[i0[i_fail1],j0[i_fail1]] ))
-#    
-#    print( sum( np.diag( data[i0[i_fail1],j0[i_fail1]] ) ))
-#    print( sum(diagonal[i_diag1]) )
     n_fail1 = np.sum( np.sum( np.diag( data[i0[i_fail1],j0[i_fail1]] ) ) ) - np.sum(diagonal[i_diag1])
    
     cond1   = np.where(err_bin[j0]/sig_bin[i0] >=1.0)[0]
@@ -607,10 +562,7 @@ def hplstat(HPL,HPE,HAL,src_name):
     n_fail3 = np.sum( np.sum( np.diag( data[i0[i_fail3],j0[i_fail3]] ) ) ) - np.sum(diagonal[i_diag3])
 
     i_cont  = np.where(sig_bin[i0] >= HAL)[0]
-#    print(i_cont)
-#    print( i0[i_cont] )
-#    print( j0[i_cont] ) 
-#    print(data[i0[i_cont],j0[i_cont]])
+
     n_cont  = np.sum( np.sum( np.diag(data[i0[i_cont],j0[i_cont]])));
     
     #i_avail = find(err_bin(j) < HAL & sig_bin(i) < HAL);
@@ -620,61 +572,48 @@ def hplstat(HPL,HPE,HAL,src_name):
     i_avail = np.intersect1d(cond1, cond2)
     n_avail = np.sum( np.sum( np.diag( data[i0[i_avail],j0[i_avail]] ) ) ) + np.sum(diagonal[i_diag2])
     
+    txt_list = []
+    txt_x    = []
+    txt_y    = []
+    
     # show the region of normal operation
-    ax1.text(0.37*(HAL - x_lo_bnd) + x_lo_bnd, 0.93*(HAL - y_lo_bnd) + y_lo_bnd, 'Normal Operation', rotation=0)
+    txt_list.append('Normal Operation'); txt_x.append(0.37*(HAL - x_lo_bnd) + x_lo_bnd); txt_y.append( 0.93*(HAL - y_lo_bnd) + y_lo_bnd)
     if  n_avail/epochs >= .999995:
-        ax1.text(0.37*(HAL - x_lo_bnd) + x_lo_bnd, 0.86*(HAL - y_lo_bnd) + y_lo_bnd, '> 99.999%', rotation=0)
+        txt_list.append('> 99.999%');txt_x.append(0.37*(HAL - x_lo_bnd) + x_lo_bnd);txt_y.append(0.86*(HAL - y_lo_bnd) + y_lo_bnd)
     else:
-        ax1.text(0.37*(HAL - x_lo_bnd) + x_lo_bnd, 0.86*(HAL - y_lo_bnd) + y_lo_bnd, "{:.3f}".format(100.0*n_avail/epochs)+'%',rotation=0)
+        txt_list.append("{:.3f}".format(100.0*n_avail/epochs)+'%'); txt_x.append(0.37*(HAL - x_lo_bnd) + x_lo_bnd);txt_y.append(0.86*(HAL - y_lo_bnd) + y_lo_bnd)
    
     # outline the region of integrity failures (RECTANGULO ROJ0)
-    coor = np.array([[HAL,HAL,x_up_bnd,x_up_bnd],[y_lo_bnd,HAL,HAL,y_lo_bnd]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color1,zorder=0))
     add_polygon(fig_plotly,[HAL,HAL,x_up_bnd,x_up_bnd],[y_lo_bnd,HAL,HAL,y_lo_bnd],'rgb(255,114,111)')
-    HT = ax1.text(0.50*(x_up_bnd - HAL) + HAL, 0.55*(HAL - y_lo_bnd) + y_lo_bnd, 'HMI')
-    HT = ax1.text(0.50*(x_up_bnd - HAL) + HAL, 0.45*(HAL - y_lo_bnd) + y_lo_bnd, 'epochs: '+ str(n_fail1))
-    add_text   (fig_plotly,'HMI'                   ,[0.50*(x_up_bnd - HAL) + HAL] , [ 0.55*(HAL - y_lo_bnd) + y_lo_bnd],'black')
-    add_text   (fig_plotly,'epochs: '+ str(n_fail1),[0.50*(x_up_bnd - HAL) + HAL] , [ 0.55*(HAL - y_lo_bnd) + y_lo_bnd],'black')
+    txt_list.append('HMI');txt_x.append(0.50*(x_up_bnd - HAL) + HAL);txt_y.append( 0.55*(HAL - y_lo_bnd) + y_lo_bnd)
+    txt_list.append('epochs: '+ str(n_fail1));txt_x.append(0.50*(x_up_bnd - HAL) + HAL);txt_y.append( 0.45*(HAL - y_lo_bnd) + y_lo_bnd)
     
     # outline the region of HPL failures (TRIANGULO inferior)
-    coor = np.array([[x_lo_bnd,HAL,HAL],[y_lo_bnd,HAL,y_lo_bnd]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color2,zorder=0))
     add_polygon(fig_plotly,[x_lo_bnd,HAL,HAL],[y_lo_bnd,HAL,y_lo_bnd],'rgb(255,204,203)')
-    ax1.text(0.67*(HAL - x_lo_bnd) + x_lo_bnd,0.35*(HAL - y_lo_bnd) + y_lo_bnd, 'MI')
-    HT = ax1.text(0.67*(HAL - x_lo_bnd) + x_lo_bnd,0.25*(HAL - y_lo_bnd) + y_lo_bnd, 'epochs: '+ str(n_fail2))
-    add_text   (fig_plotly,'MI'                    ,[0.67*(HAL - x_lo_bnd) + x_lo_bnd] , [0.35*(HAL - y_lo_bnd) + y_lo_bnd],'black')
-    add_text   (fig_plotly,'epochs: '+ str(n_fail2),[0.67*(HAL - x_lo_bnd) + x_lo_bnd] , [0.25*(HAL - y_lo_bnd) + y_lo_bnd],'black')
+    txt_list.append('MI'); txt_x.append( 0.67*(HAL - x_lo_bnd) + x_lo_bnd) , txt_y.append(0.35*(HAL - y_lo_bnd) + y_lo_bnd)
+    txt_list.append('epochs: '+ str(n_fail2));txt_x.append(0.67*(HAL - x_lo_bnd) + x_lo_bnd) , txt_y.append(0.25*(HAL - y_lo_bnd) + y_lo_bnd)
     
     # outline the region of unavailability  (POLIGONO AMARILLO)
-    coor = np.array([[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[HAL, HAL, y_up_bnd, y_up_bnd]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color3,zorder=0))
     add_polygon(fig_plotly,[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[HAL, HAL, y_up_bnd, y_up_bnd],'rgb(253,255,143)')
-    
-    ax1.text     (0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd,0.70*(y_up_bnd - HAL) + HAL, 'System Unavailable')
-    HT = ax1.text(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd,0.55*(y_up_bnd - HAL) + HAL, 'epochs: '+ str(n_cont))
-    add_text   (fig_plotly,'System Unavailable'   , [ 0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd],[0.70*(y_up_bnd - HAL) + HAL ] ,'black')
-    add_text   (fig_plotly,'epochs: '+ str(n_cont), [ 0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd],[0.55*(y_up_bnd - HAL) + HAL ] ,'black')
+    txt_list.append('System Unavailable');txt_x.append(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd);txt_y.append(0.70*(y_up_bnd - HAL) + HAL )
+    txt_list.append('epochs: '+ str(n_cont));txt_x.append( 0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd);txt_y.append(0.55*(y_up_bnd - HAL) + HAL )
     
     # outline the region where integrity failures and unavailability overlap (TRIANGULO superior)
-    coor = np.array([[HAL, x_up_bnd, x_up_bnd],[HAL, y_up_bnd, HAL]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color4,zorder=0))
     add_polygon(fig_plotly,[HAL, x_up_bnd, x_up_bnd],[HAL, y_up_bnd, HAL],'rgb(255,158,87)')
-    ax1.text     (0.5*(x_up_bnd - HAL) + HAL,0.325*(y_up_bnd - HAL) + HAL, 'MI')
-    HT = ax1.text(0.5*(x_up_bnd - HAL) + HAL,0.175*(y_up_bnd - HAL) + HAL, 'epochs: '+ str(n_fail3))
+    txt_list.append('MI');txt_x.append(0.5*(x_up_bnd - HAL) + HAL);txt_y.append(0.325*(y_up_bnd - HAL) + HAL )
+    txt_list.append('epochs: '+ str(n_fail3));txt_x.append(0.5*(x_up_bnd - HAL) + HAL);txt_y.append(0.175*(y_up_bnd - HAL) + HAL )
     
-    add_text   (fig_plotly,'MI'                    , [0.5*(x_up_bnd - HAL) + HAL],[0.325*(y_up_bnd - HAL) + HAL ],'black')
-    add_text   (fig_plotly,'epochs: '+ str(n_fail3), [0.5*(x_up_bnd - HAL) + HAL],[0.175*(y_up_bnd - HAL) + HAL ],'black')
-    ax1.grid( linestyle= ':')
-    plt.show()
+    add_text(fig_plotly,txt_list, txt_x,txt_y,'black')
+
     
+    for k in df_STFD.index:
+        add_patch  (fig_plotly,df_STFD.loc[k,'X'],df_STFD.loc[k,'Y'],RGB_bar[df_STFD.loc[k,'c_idx']])
+
 
     fig_plotly.update_xaxes(range=[x_lo_bnd, x_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
     fig_plotly.update_yaxes(range=[y_lo_bnd, y_up_bnd], showgrid=True,title_text= r'$HPL_{'+src_name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
     fig_plotly.show()
     
-    with open('objs.pkl', 'wb') as f:  # Python 3: open(..., 'wb')
-        pickle.dump([df_STFD,x_lo_bnd, x_up_bnd,y_lo_bnd, y_up_bnd,HAL,epochs,n_cont,n_avail,n_fail1,i_diag1,n_fail2,n_fail3,seconds,z_lo_bnd,z_up_bnd], f)
-    f.close()
 
 #------------------------------------------------------------------------------
 
