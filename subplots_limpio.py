@@ -6,13 +6,22 @@ Created on Sun Dec  1 17:03:23 2019
 @author: instalador
 """
 import numpy as np
+
 import plotly.graph_objects as go
 
 from plotly.subplots import make_subplots
 
-from matplotlib.colors import ListedColormap, LinearSegmentedColormap
+#from matplotlib.colors import ListedColormap, LinearSegmentedColormap
 from matplotlib import cm
-from collections import OrderedDict
+#from collections import OrderedDict
+
+
+import dash
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+
 
 
 def Reverse_ColorBar(Bar_input):
@@ -106,11 +115,11 @@ plot_ColorBar(fig,RGB_bar,Vref)
 p_x = 2.3
 p_y = 2.1
 
-add_polygon(fig,[4,2,3,4],[1,5,3,4],'rgb(255,114,111)')
+add_polygon(fig,[4,4,3,4],[1,5,3,4],'rgb(255,114,111)')
 add_polygon(fig,[7,2,3,4],[3,4,3,4],'rgb(255,204,203)')
 add_polygon(fig,[8,2,6,4],[9,11,11,4],'rgb(255,158,87)')
 add_polygon(fig,[4,2,9,3],[20,10,3,4],'rgb(253,255,143)')
-add_polygon(fig,[6,9,3,9],[30,20,9,4],'rgb(0,0,0)')
+add_polygon(fig,[6,9,3,9],[30,20,9,4],'pink')
 add_patch  (fig,p_x,p_y,'red')
 #add_text   (fig,'orlando',[5],[5],'black')
 add_text   (fig,['pepe','potamo'],[5,5],[7,9],'black')
