@@ -77,6 +77,12 @@ def add_text(dib,texto,x0,y0,color):
 #                             textfont=dict(family="sans serif", size=18, color=color )
                              ), row=1, col=1)
     return
+
+def add_textII(dib,texto,x0,y0,textposition,color):
+    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",textposition=textposition,
+#                             textfont=dict(family="sans serif", size=18, color=color )
+                             ), row=1, col=1)
+    return
 #------------------------------------------------------------------------------
 def add_patch(dib,p_x,p_y, color):
     dib.add_shape(go.layout.Shape(type="rect",x0=p_x-0.25,y0=p_y-0.25,x1=p_x+0.25,y1=p_y+0.25,
@@ -106,15 +112,11 @@ RGB_bar            = barra_RGB(color_barra) # to generate in  rgb(0.267004,0.004
 
 fig = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=("Plot 1", r'$HPL_{pepe} [m]$'),specs=[[{"secondary_y": False}, {"secondary_y": True}]])
 
-
-
 Vref = 155
 plot_ColorBar(fig,RGB_bar,Vref)
 
-
 p_x = 2.3
 p_y = 2.1
-
 add_polygon(fig,[4,4,3,4],[1,5,3,4],'rgb(255,114,111)')
 add_polygon(fig,[7,2,3,4],[3,4,3,4],'rgb(255,204,203)')
 add_polygon(fig,[8,2,6,4],[9,11,11,4],'rgb(255,158,87)')
@@ -128,3 +130,26 @@ fig.update_xaxes(range=[0, 10], showgrid=True,title_text="<b>secondary</b> yaxis
 fig.update_yaxes(range=[0, 10], showgrid=True,title_text="yaxis 1 title", gridwidth=10, gridcolor='LightPink', layer = "above traces",row=1, col=1)
 
 fig.show()
+
+
+#------------------------------------------
+fig2= make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=("Plot 1", r'$HPL_{pepe} [m]$'),specs=[[{"secondary_y": False}, {"secondary_y": True}]])
+
+Vref = 155
+plot_ColorBar(fig2,RGB_bar,Vref)
+
+p_x = 8
+p_y = 9
+add_polygon(fig2,[4,4,3,4],[1,5,3,4],'rgb(255,114,111)')
+add_polygon(fig2,[7,2,3,4],[3,4,3,4],'rgb(255,204,203)')
+add_polygon(fig2,[8,2,6,4],[9,11,11,4],'rgb(255,158,87)')
+add_polygon(fig2,[4,2,9,3],[20,10,3,4],'rgb(253,255,143)')
+
+add_patch  (fig2,p_x,p_y,'red')
+#add_text   (fig,'orlando',[5],[5],'black')
+add_textII   (fig2,['pepe','potamo'],[5,5],[7,9],["middle center","bottom left"],'black')
+
+fig2.update_xaxes(range=[0, 10], showgrid=True,title_text="<b>secondary</b> yaxis title xaxis 1 title", gridwidth=1, gridcolor='LightPink',layer = "below traces", row=1, col=1)
+fig2.update_yaxes(range=[0, 10], showgrid=True,title_text="yaxis 1 title", gridwidth=10, gridcolor='LightPink', layer = "above traces",row=1, col=1)
+
+fig2.show()

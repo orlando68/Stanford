@@ -23,7 +23,9 @@ from collections import OrderedDict
 import plotly.graph_objects as go
 
 from plotly.subplots import make_subplots
-
+import dash
+external_stylesheets =['https://codepen.io/chriddyp/pen/bWLwgP.css']
+app = dash.Dash(__name__, external_stylesheets = external_stylesheets)
 
 #------------------------------------------------------------------------------
 def set_numpy_decimal_places(places, width=0):
@@ -106,6 +108,11 @@ def plot_ColorBar(dib,RGB_bar,Vref):
 #------------------------------------------------------------------------------
 def add_text(dib,texto,x0,y0,color):
     dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",orientation ='v',textposition="middle center",
+#                             textfont=dict(family="sans serif", size=18, color=color )
+                             ), row=1, col=1)
+    return
+def add_textII(dib,texto,x0,y0,textposition,color):
+    dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",textposition=textposition,
 #                             textfont=dict(family="sans serif", size=18, color=color )
                              ), row=1, col=1)
     return
@@ -297,27 +304,14 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
         df_STFD.loc[idx,'Z']     = Z
         df_STFD.loc[idx,'c_idx'] = c_idx
 
-#==============================================================================
-    plt.figure(figsize=(12,10), dpi=70)
-    matplt_cmap,color_bar = ColorMap()
-    norm        = mpl.colors.Normalize(vmin=z_lo_bnd, vmax=z_up_bnd)   #-----aqui normalizamos
-    
-    ax1         = plt.axes([0.1-0.014, 0.1, .75, .8])
 
-    for k in df_STFD.index:
-        rect = patches.Rectangle( (df_STFD.loc[k,'X']-0.25, df_STFD.loc[k,'Y']-0.25),
-                                 0.5, 0.5, facecolor = color_bar[df_STFD.loc[k,'c_idx']])
-        ax1.add_patch(rect)    
-    ax1.axis([x_lo_bnd, x_up_bnd,y_lo_bnd, y_up_bnd])
-    ax1.set_xlabel('Error [m]')
-    src_name= 'EGNOS'
-    ax1.set_ylabel(r'$HPL_{'+src_name+'} [m]$')
-    ax1.set_title('Horizontal Performance ['+str(seconds)+' seconds]')
-    ax1.set_aspect('equal', 'box') 
-    
-    ax2         = plt.axes([.87-0.014, .1, .025, .8])
-    cb1         = mpl.colorbar.ColorbarBase(ax2, cmap = matplt_cmap, norm = norm, orientation = 'vertical')    
-    cb1.set_label('Number of Points per Pixel')
+#==============================================================================
+
+    fig_vplstat = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=('Vertical Performance ['+str(seconds)+' seconds]', ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
+    fig_vplstat.update_layout(height = 938, width = 1250,margin = go.layout.Margin(l=300,r=50,b=100,t=100,pad = 4))
+    matplt_cmap,color_bar = ColorMap()
+    RGB_bar            = barra_RGB(color_bar) # to generate in  rgb(0.267004,0.004874,0.329415)
+    plot_ColorBar(fig_vplstat,RGB_bar,z_up_bnd)
 
 
     # determine availability and # of integrity failures
@@ -357,106 +351,106 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
     n_avail2 = np.sum(np.sum(np.diag(data[i0[i_avail2],j0[i_avail2]]))) + np.sum(diagonal[np.append(i_diag2, i_diag4)])
 
 
-    
+    txt_list = []
+    txt_x    = []
+    txt_y    = []
+    txt_posi = []
+
 #     show the region of IPV operation
-    HT = ax1.text(0.57*(VAL2 - x_lo_bnd) + x_lo_bnd, 0.95*(VAL2 - y_lo_bnd) + y_lo_bnd,'IPV Operation',fontsize=10,ha='center');
-
+    txt_list.append('IPV Operation'); txt_x.append(0.57*(VAL2 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.95*(VAL2 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
+    
     if n_avail2/epochs >= 0.999995:
-        HT = ax1.text(0.53*(VAL2 - x_lo_bnd) + x_lo_bnd,0.89*(VAL2 - y_lo_bnd) + y_lo_bnd,'> 99.999%');
-
+        txt_list.append('> 99.999%')                               ; txt_x.append(0.53*(VAL2 - x_lo_bnd) + x_lo_bnd); txt_y.append( 0.89*(VAL2 - y_lo_bnd) + y_lo_bnd);txt_posi.append('middle center')
     else:
-        HT = ax1.text(0.57*(VAL2 - x_lo_bnd) + x_lo_bnd,0.89*(VAL2 - y_lo_bnd) + y_lo_bnd, "{:.3f}".format(100.0*n_avail2/epochs)+'%')
-  
+        txt_list.append("{:.3f}".format(100.0*n_avail2/epochs)+'%'); txt_x.append(0.57*(VAL2 - x_lo_bnd) + x_lo_bnd); txt_y.append( 0.89*(VAL2 - y_lo_bnd) + y_lo_bnd);txt_posi.append('middle center')
     # show the region of CAT I operation
-    HT = ax1.text(0.45*(VAL1 - x_lo_bnd) + x_lo_bnd,0.93*(VAL1 - y_lo_bnd) + y_lo_bnd,'CAT I Oper.',fontsize=10)
+   
+    txt_list.append('CAT I Oper.'); txt_x.append(0.45*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.93*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
 
-    ax1.text(0.45*(VAL1 - x_lo_bnd) + x_lo_bnd,0.93*(VAL1 - y_lo_bnd) + y_lo_bnd,'CAT I Oper.',fontsize=10)
     if n_avail1/epochs >= 0.999995:
-      HT = ax1.text(0.4*(VAL1 - x_lo_bnd) + x_lo_bnd,0.84*(VAL1 - y_lo_bnd) + y_lo_bnd,'> 99.999%');
-
+        txt_list.append('> 99.999%')                               ; txt_x.append(0.4*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.84*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
     else:
-        HT = ax1.text(0.45*(VAL1 - x_lo_bnd) + x_lo_bnd,0.84*(VAL1 - y_lo_bnd) + y_lo_bnd,"{:.3f}".format(100.0*n_avail1/epochs)+'%')
-
+        txt_list.append("{:.3f}".format(100.0*n_avail1/epochs)+'%'); txt_x.append(0.45*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.84*(VAL1 - y_lo_bnd) + y_lo_bnd  );txt_posi.append('middle center')
     # outline the region of integrity failures
-    coor = np.array([[VAL1, VAL1, VAL2, VAL2, x_up_bnd, x_up_bnd],[y_lo_bnd, VAL1, VAL1, VAL2, VAL2, y_lo_bnd]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color1,zorder=0))
-    HT   = ax1.text(VAL2, 0.5*(VAL2 - y_lo_bnd) + y_lo_bnd,'HMI');
-    HT   = ax1.text(VAL2, 0.4*(VAL2 - y_lo_bnd) + y_lo_bnd,'epochs: '+ str(n_fail1))
 
-    # outline the lowest region of VPL failures
-    coor = np.array([[x_lo_bnd, VAL1, VAL1],[y_lo_bnd, VAL1, y_lo_bnd]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color2,zorder=0))
-    HT   = ax1.text(0.67*(VAL1 - x_lo_bnd) + x_lo_bnd, 0.35*(VAL1 - y_lo_bnd) + y_lo_bnd, 'MI',ha= 'center')
-    HT   = ax1.text(0.67*(VAL1 - x_lo_bnd) + x_lo_bnd,0.25*(VAL1 - y_lo_bnd) + y_lo_bnd,'epochs: '+ str(n_fail2),ha= 'center')
+    add_polygon(fig_vplstat,[VAL1, VAL1, VAL2, VAL2, x_up_bnd, x_up_bnd],[y_lo_bnd, VAL1, VAL1, VAL2, VAL2, y_lo_bnd],'rgb(255,114,111)')
+    txt_list.append('HMI');                    txt_x.append(VAL2); txt_y.append(0.5*(VAL2 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
+    txt_list.append('epochs: '+ str(n_fail1)); txt_x.append(VAL2); txt_y.append(0.4*(VAL2 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
 
-    # outline the middle region of VPL failures
+    # outline the lowest region of VPL failures clor2
+    add_polygon(fig_vplstat,[x_lo_bnd, VAL1, VAL1],[y_lo_bnd, VAL1, y_lo_bnd],'rgb(255,204,203)')
+    txt_list.append('MI')                    ; txt_x.append(0.67*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.35*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
+    txt_list.append('epochs: '+ str(n_fail2)); txt_x.append(0.67*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.25*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
 
-    coor = np.array([[VAL1, VAL2, VAL2],  [VAL1, VAL2, VAL1]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color2,zorder=0))
-    HT   = ax1.text(0.67*(VAL2 - VAL1) + VAL1,0.39*(VAL2 - VAL1) + VAL1, 'MI',ha= 'center')
-    HT   = ax1.text(0.67*(VAL2 - VAL1) + VAL1,0.25*(VAL2 - VAL1) + VAL1, 'epochs: '+ str(n_fail4),ha= 'center')
+    # outline the middle region of VPL failures color 2
+    add_polygon(fig_vplstat,[VAL1, VAL2, VAL2],  [VAL1, VAL2, VAL1],'rgb(255,204,203)')
+    txt_list.append('center')                ; txt_x.append(0.67*(VAL2 - VAL1) + VAL1); txt_y.append(0.39*(VAL2 - VAL1) + VAL1 );txt_posi.append('middle center')
+    txt_list.append('epochs: '+ str(n_fail4)); txt_x.append(0.67*(VAL2 - VAL1) + VAL1); txt_y.append(0.25*(VAL2 - VAL1) + VAL1 );txt_posi.append('middle center')
 
-    # outline the region of unavailability
-    coor = np.array([[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[VAL2, VAL2, y_up_bnd, y_up_bnd]  ])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color3,zorder=0))
-    HT   = ax1.text(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd,0.65*(y_up_bnd - VAL2) + VAL2,'System Unavailable',fontsize=10,ha= 'center')
-    HT   = ax1.text(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd,0.35*(y_up_bnd - VAL2) + VAL2,'Alarm Epochs: '+ str(n_cont),ha= 'center')
+    # outline the region of unavailability color amarillo
+    add_polygon(fig_vplstat,[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[VAL2, VAL2, y_up_bnd, y_up_bnd],'rgb(253,255,143)')
+    txt_list.append('System Unavailable')         ; txt_x.append(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(0.65*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
+    txt_list.append('Alarm Epochs: '+ str(n_cont)); txt_x.append(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(0.35*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
 
-#     outline the region where integrity failures and unavailability overlap
-    coor = np.array([[VAL2, x_up_bnd, x_up_bnd],[VAL2, y_up_bnd, VAL2] ])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor=color4,zorder=0))
-    HT   = ax1.text(0.70*(x_up_bnd - VAL2) + VAL2, 0.4*(y_up_bnd - VAL2) + VAL2, 'MI:',ha= 'center')
-    HT   = ax1.text(0.70*(x_up_bnd - VAL2) + VAL2, 0.175*(y_up_bnd - VAL2) + VAL2,str(n_fail3))
+#     outline the region where integrity failures and unavailability overlap color 4
+    add_polygon(fig_vplstat,[VAL2, x_up_bnd, x_up_bnd],[VAL2, y_up_bnd, VAL2],'rgb(255,153,18)')
+    txt_list.append('MI:')       ; txt_x.append(0.70*(x_up_bnd - VAL2) + VAL2); txt_y.append(0.4*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
+    txt_list.append(str(n_fail3)); txt_x.append(0.70*(x_up_bnd - VAL2) + VAL2); txt_y.append(0.175*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
 
-#% label the axes and add a title
-    ax1.set_xlabel('Error [m]',fontsize='xx-large')
-    ax1.set_ylabel(r'$VPL_{'+ src_name +'} [m]$',fontsize='xx-large');
-    ax1.set_title ('Vertical Performance [' +str(seconds)+' seconds]',fontsize='xx-large')
 
 #    bnd_68 =err_bin[bound2(0.68 ,np.sum(data,axis=0).T)] + d_err_bin/2;
 #    bnd_95 =err_bin[bound2(0.95 ,np.sum(data,axis=0).T)] + d_err_bin/2;
 #    bnd_999=err_bin[bound2(0.999,np.sum(data,axis=0).T)] + d_err_bin/2;
     
-    err_bnd_68  = err_bin[bound2(0.68 , np.sum(data,axis=0).T)] + d_err_bin/2;
-    err_bnd_95  = err_bin[bound2(0.95 , np.sum(data,axis=0).T)] + d_err_bin/2;
-    err_bnd_999 = err_bin[bound2(0.999, np.sum(data,axis=0).T)] + d_err_bin/2;
+    err_bnd_68  = err_bin[bound2(0.68 , np.sum(data,axis=0).T)] + d_err_bin/2;err_bnd_68  = err_bnd_68[0]
+    err_bnd_95  = err_bin[bound2(0.95 , np.sum(data,axis=0).T)] + d_err_bin/2;err_bnd_95  = err_bnd_95[0]
+    err_bnd_999 = err_bin[bound2(0.999, np.sum(data,axis=0).T)] + d_err_bin/2;err_bnd_999 = err_bnd_999[0]
+    
+#    print(err_bnd_68,err_bnd_68[0])
 
-    coor        = np.array([[err_bnd_68 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_68, err_bnd_68 - 0.01*(x_up_bnd - x_lo_bnd)],[y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd]  ])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor='k',zorder=0))
-    HT          =ax1.text(err_bnd_68, 0.03*(y_up_bnd - y_lo_bnd), '68%', rotation=90, verticalalignment =  'bottom',fontsize=10);
+    add_polygon(fig_vplstat,[err_bnd_68 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_68, err_bnd_68 - 0.01*(x_up_bnd - x_lo_bnd)],
+                            [y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd] ,'black')
+    txt_list.append('68%'); txt_x.append(err_bnd_68); txt_y.append(0.03*(y_up_bnd - y_lo_bnd) );txt_posi.append('middle center')
 
-    coor        = np.array([[err_bnd_95 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_95, err_bnd_95 - 0.01*(x_up_bnd - x_lo_bnd)],[y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd] ])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor='k',zorder=0))
-    HT= ax1.text(err_bnd_95, 0.03*(y_up_bnd - y_lo_bnd), '95%', rotation=90, verticalalignment =  'bottom',fontsize=10);
+    add_polygon(fig_vplstat,[err_bnd_95 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_95, err_bnd_95 - 0.01*(x_up_bnd - x_lo_bnd)],
+                            [y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd],'black')
+    txt_list.append('95%'); txt_x.append(err_bnd_95); txt_y.append(0.03*(y_up_bnd - y_lo_bnd) );txt_posi.append('middle center')
 
-    coor        = np.array([[err_bnd_999 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_999, err_bnd_999 - 0.01*(x_up_bnd - x_lo_bnd)], [y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd] ])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor='k',zorder=0))
-    HT          =ax1.text(err_bnd_999, 0.03*(y_up_bnd - y_lo_bnd),'99.9%', rotation=90, verticalalignment =  'bottom',fontsize=10);
+    add_polygon(fig_vplstat,[err_bnd_999 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_999, err_bnd_999 - 0.01*(x_up_bnd - x_lo_bnd)], 
+                            [y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd],'black')
+    txt_list.append('99.9%'); txt_x.append(err_bnd_999); txt_y.append(0.03*(y_up_bnd - y_lo_bnd) );txt_posi.append('middle center')
 
-    sig_bnd_68  =sig_bin[bound2(0.68 ,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2
-    sig_bnd_95  =sig_bin[bound2(0.95 ,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2
-    sig_bnd_999 =sig_bin[bound2(0.999,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2
+    sig_bnd_68  = sig_bin[bound2(0.68 ,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2;sig_bnd_68  =sig_bnd_68[0]
+    sig_bnd_95  = sig_bin[bound2(0.95 ,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2;sig_bnd_95  =sig_bnd_95[0]
+    sig_bnd_999 = sig_bin[bound2(0.999,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2;sig_bnd_999 =sig_bnd_999[0]
 
-    coor        = np.array([[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd],[sig_bnd_68 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_68, sig_bnd_68 - 0.01*(y_up_bnd - y_lo_bnd)] ])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor='k',zorder=0))
 
-    ax1.text(0.925*(x_up_bnd - x_lo_bnd) + x_lo_bnd, sig_bnd_68, '68%',fontsize=10);
-    coor        = np.array([[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd],[sig_bnd_95 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_95, sig_bnd_95 - 0.01*(y_up_bnd - y_lo_bnd)]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor='k',zorder=0))
-  
-    ax1.text(0.925*(x_up_bnd - x_lo_bnd) + x_lo_bnd, sig_bnd_95, '95%',fontsize=10);
-    coor        = np.array([[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd], [sig_bnd_999 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_999, sig_bnd_999 - 0.01*(y_up_bnd - y_lo_bnd)]])
-    ax1.add_patch(patches.Polygon(coor.T, linewidth=10,facecolor='k',zorder=0))
-   
-    ax1.text(0.9*(x_up_bnd - x_lo_bnd) + x_lo_bnd, sig_bnd_999, '99.9%',fontsize=10);
-    ax1.grid( linestyle= ':')
-    plt.show()
+    add_polygon(fig_vplstat,[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd],
+                            [sig_bnd_68 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_68, sig_bnd_68 - 0.01*(y_up_bnd - y_lo_bnd)],'black')
+    txt_list.append('68%'); txt_x.append(0.925*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(sig_bnd_68 );txt_posi.append('bottom right')
 
+
+    add_polygon(fig_vplstat,[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd],
+                            [sig_bnd_95 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_95, sig_bnd_95 - 0.01*(y_up_bnd - y_lo_bnd)],'black')
+    txt_list.append('95%'); txt_x.append(0.925*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(sig_bnd_95 );txt_posi.append('bottom right')
+
+    add_polygon(fig_vplstat,[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd], 
+                            [sig_bnd_999 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_999, sig_bnd_999 - 0.01*(y_up_bnd - y_lo_bnd)],'black')
+    txt_list.append('99.9%'); txt_x.append(0.9*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(sig_bnd_999 );txt_posi.append('bottom right')
+
+
+    add_textII(fig_vplstat,txt_list, txt_x,txt_y,txt_posi,'black')
+
+    for k in df_STFD.index:
+        add_patch  (fig_vplstat,df_STFD.loc[k,'X'],df_STFD.loc[k,'Y'],RGB_bar[df_STFD.loc[k,'c_idx']])
+
+    fig_vplstat.update_xaxes(range=[x_lo_bnd, x_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
+    fig_vplstat.update_yaxes(range=[y_lo_bnd, y_up_bnd], showgrid=True,title_text= r'$VPL_{'+src_name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
+    fig_vplstat.show()
 #------------------------------------------------------------------------------
 #                                HPLSTAT
 #------------------------------------------------------------------------------
 def hplstat(HPL,HPE,HAL,src_name):
-        
 
     # size of VPL, which should be the same for VPE as well
     n = HPL.shape[1]
@@ -537,7 +531,9 @@ def hplstat(HPL,HPE,HAL,src_name):
 #==============================================================================
 
     fig_plotly = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=('Horizontal Performance ['+str(seconds)+' seconds]', ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
-
+#    fig_plotly.update_layout(height = 938, width = 1250,margin = go.layout.Margin(l=100,r=200,b=100,t=50,pad = 5))
+    fig_plotly.update_layout( autosize=True)
+   
     matplt_cmap,color_bar = ColorMap()
     RGB_bar            = barra_RGB(color_bar) # to generate in  rgb(0.267004,0.004874,0.329415)
     plot_ColorBar(fig_plotly,RGB_bar,z_up_bnd)
@@ -608,7 +604,6 @@ def hplstat(HPL,HPE,HAL,src_name):
     
     for k in df_STFD.index:
         add_patch  (fig_plotly,df_STFD.loc[k,'X'],df_STFD.loc[k,'Y'],RGB_bar[df_STFD.loc[k,'c_idx']])
-
 
     fig_plotly.update_xaxes(range=[x_lo_bnd, x_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
     fig_plotly.update_yaxes(range=[y_lo_bnd, y_up_bnd], showgrid=True,title_text= r'$HPL_{'+src_name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
