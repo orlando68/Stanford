@@ -108,12 +108,12 @@ def plot_ColorBar(dib,RGB_bar,Vref):
 #------------------------------------------------------------------------------
 def add_text(dib,texto,x0,y0,color):
     dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",orientation ='v',textposition="middle center",
-#                             textfont=dict(family="sans serif", size=18, color=color )
+                             textfont=dict(family="sans serif", size=16, color=color )
                              ), row=1, col=1)
     return
 def add_textII(dib,texto,x0,y0,textposition,color):
     dib.add_trace(go.Scatter(x=x0,y=y0,text=texto, mode="text",textposition=textposition,
-#                             textfont=dict(family="sans serif", size=18, color=color )
+                             textfont=dict(family="sans serif", size=10, color=color )
                              ), row=1, col=1)
     return
 #------------------------------------------------------------------------------
@@ -129,10 +129,8 @@ def add_polygon(dib,x_points,y_points,color):
         if index < np.size(x_points)-1:
             camino = camino + ' L'
     camino = camino + ' Z'
-    print(camino)
-
+    # print(camino)
     dib.add_shape(go.layout.Shape(type="path",path=camino,fillcolor=color),line_color=color,layer = "below", opacity=1.0,row=1, col=1)
-    
     return
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -167,7 +165,6 @@ def bound2(percent,*argv):
     index= index.astype('int')
     return index
 #------------------------------------------------------------------------------
-  
 def  SBAS_xPL(el,az,sigma):
     # initialize data
     HPL_prec  = 0; 
@@ -218,6 +215,115 @@ def  SBAS_xPL(el,az,sigma):
 #------------------------------------------------------------------------------
 #                                VPLSTAT
 #------------------------------------------------------------------------------
+def StanfordV(VAL, X_bnd, Y_bnd, Z_up_bnd, N_avail, Epochs,Seconds, N_fail,N_cont, Measures,Err_bnd,Sig_bnd, Name):
+    VAL1 = VAL[0]
+    VAL2 = VAL[1]
+    X_lo_bnd = X_bnd[0]
+    X_up_bnd = X_bnd[1]
+    Y_lo_bnd = Y_bnd[0]
+    Y_up_bnd = Y_bnd[1]
+    N_avail1 =N_avail[0]
+    N_avail2 =N_avail[1]
+
+    N_fail1 = N_fail[0]
+    N_fail2 = N_fail[1]
+    N_fail3 = N_fail[2]
+    N_fail4 = N_fail[3]
+    Err_bnd_68 = Err_bnd[0]
+    Err_bnd_95 = Err_bnd[1]
+    Err_bnd_999 = Err_bnd[2]
+    Sig_bnd_68 = Sig_bnd[0]
+    Sig_bnd_95= Sig_bnd[1]
+    Sig_bnd_999 = Sig_bnd[2]
+
+    fig= make_subplots(rows=1, cols=2, column_widths=[10, 0.5],
+                                subplot_titles=('Vertical Performance [' + str(Seconds) + ' seconds]', ""),
+                                specs=[[{"secondary_y": False}, {"secondary_y": True}]])
+    #    fig_vplstat.update_layout(height = 938, width = 1250,margin = go.layout.Margin(l=300,r=50,b=100,t=100,pad = 4))
+    #     fig_vplstat.update_layout(paper_bgcolor="LightSteelBlue",plot_bgcolor="white",margin = go.layout.Margin(l=400,r=300,b=100,t=100,pad = 0))
+    matplt_cmap, color_bar = ColorMap()
+    RGB_bar = barra_RGB(color_bar)  # to generate in  rgb(0.267004,0.004874,0.329415)
+    plot_ColorBar(fig, RGB_bar, Z_up_bnd)
+
+    txt_list = []
+    txt_x    = []
+    txt_y    = []
+    txt_posi = []
+
+#     show the region of IPV operation
+    txt_list.append('IPV Operation'); txt_x.append(0.57*(VAL2 - X_lo_bnd) + X_lo_bnd); txt_y.append(0.95*(VAL2 - Y_lo_bnd) + Y_lo_bnd );txt_posi.append('middle center')
+    if N_avail2/Epochs >= 0.999995:
+        txt_list.append('> 99.999%') ; txt_x.append(0.53*(VAL2 - X_lo_bnd) + X_lo_bnd); txt_y.append( 0.89*(VAL2 - Y_lo_bnd) + Y_lo_bnd);txt_posi.append('middle center')
+    else:
+        txt_list.append("{:.3f}".format(100.0*N_avail2/Epochs)+'%'); txt_x.append(0.57*(VAL2 - X_lo_bnd) + X_lo_bnd); txt_y.append( 0.89*(VAL2 - Y_lo_bnd) + Y_lo_bnd);txt_posi.append('middle center')
+
+    # show the region of CAT I operation
+    txt_list.append('CAT I Oper.'); txt_x.append(0.45*(VAL1 - X_lo_bnd) + X_lo_bnd); txt_y.append(0.93*(VAL1 - Y_lo_bnd) + Y_lo_bnd );txt_posi.append('middle center')
+    if N_avail1/Epochs >= 0.999995:
+        txt_list.append('> 99.999%') ; txt_x.append(0.4*(VAL1 - X_lo_bnd) + X_lo_bnd); txt_y.append(0.84*(VAL1 - Y_lo_bnd) + Y_lo_bnd );txt_posi.append('middle center')
+    else:
+        txt_list.append("{:.3f}".format(100.0*N_avail1/Epochs)+'%'); txt_x.append(0.45*(VAL1 - X_lo_bnd) + X_lo_bnd); txt_y.append(0.84*(VAL1 - Y_lo_bnd) + Y_lo_bnd  );txt_posi.append('middle center')
+
+    # outline the region of integrity failures
+    add_polygon(fig,[VAL1, VAL1, VAL2, VAL2, X_up_bnd, X_up_bnd],[Y_lo_bnd, VAL1, VAL1, VAL2, VAL2, Y_lo_bnd],'rgb(255,114,111)')
+    txt_list.append('HMI');                    txt_x.append(VAL2); txt_y.append(0.5*(VAL2 - Y_lo_bnd) + Y_lo_bnd );txt_posi.append('middle center')
+    txt_list.append('epochs: '+ str(N_fail1)); txt_x.append(VAL2); txt_y.append(0.4*(VAL2 - Y_lo_bnd) + Y_lo_bnd );txt_posi.append('middle center')
+
+    # outline the lowest region of VPL failures clor2
+    add_polygon(fig,[X_lo_bnd, VAL1, VAL1],[Y_lo_bnd, VAL1, Y_lo_bnd],'rgb(255,204,203)')
+    txt_list.append('MI')                    ; txt_x.append(0.67*(VAL1 - X_lo_bnd) + X_lo_bnd); txt_y.append(0.35*(VAL1 - Y_lo_bnd) + Y_lo_bnd );txt_posi.append('middle center')
+    txt_list.append('epochs: '+ str(N_fail2)); txt_x.append(0.67*(VAL1 - X_lo_bnd) + X_lo_bnd); txt_y.append(0.25*(VAL1 - Y_lo_bnd) + Y_lo_bnd );txt_posi.append('middle center')
+
+    # outline the middle region of VPL failures color 2
+    add_polygon(fig,[VAL1, VAL2, VAL2],  [VAL1, VAL2, VAL1],'rgb(255,204,203)')
+    txt_list.append('center')                ; txt_x.append(0.67*(VAL2 - VAL1) + VAL1); txt_y.append(0.39*(VAL2 - VAL1) + VAL1 );txt_posi.append('middle center')
+    txt_list.append('epochs: '+ str(N_fail4)); txt_x.append(0.67*(VAL2 - VAL1) + VAL1); txt_y.append(0.25*(VAL2 - VAL1) + VAL1 );txt_posi.append('middle center')
+
+    # outline the region of unavailability color amarillo
+    add_polygon(fig,[X_lo_bnd, X_up_bnd, X_up_bnd, X_lo_bnd],[VAL2, VAL2, Y_up_bnd, Y_up_bnd],'rgb(253,255,143)')
+    txt_list.append('System Unavailable')         ; txt_x.append(0.50*(X_up_bnd - X_lo_bnd) + X_lo_bnd); txt_y.append(0.65*(Y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
+    txt_list.append('Alarm Epochs: '+ str(N_cont)); txt_x.append(0.50*(X_up_bnd - X_lo_bnd) + X_lo_bnd); txt_y.append(0.35*(Y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
+
+#     outline the region where integrity failures and unavailability overlap color 4
+    add_polygon(fig,[VAL2, X_up_bnd, X_up_bnd],[VAL2, Y_up_bnd, VAL2],'rgb(255,153,18)')
+    txt_list.append('MI:')       ; txt_x.append(0.70*(X_up_bnd - VAL2) + VAL2); txt_y.append(0.4*(Y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
+    txt_list.append(str(N_fail3)); txt_x.append(0.70*(X_up_bnd - VAL2) + VAL2); txt_y.append(0.175*(Y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
+
+    add_polygon(fig,[Err_bnd_68 + 0.01*(X_up_bnd - X_lo_bnd), Err_bnd_68, Err_bnd_68 - 0.01*(X_up_bnd - X_lo_bnd)],
+                            [Y_lo_bnd, 0.02*(Y_up_bnd - Y_lo_bnd), Y_lo_bnd] ,'black')
+    txt_list.append('68%'); txt_x.append(Err_bnd_68); txt_y.append(0.03*(Y_up_bnd - Y_lo_bnd) );txt_posi.append('middle center')
+
+    add_polygon(fig,[Err_bnd_95 + 0.01*(X_up_bnd - X_lo_bnd), Err_bnd_95, Err_bnd_95 - 0.01*(X_up_bnd - X_lo_bnd)],
+                            [Y_lo_bnd, 0.02*(Y_up_bnd - Y_lo_bnd), Y_lo_bnd],'black')
+    txt_list.append('95%'); txt_x.append(Err_bnd_95); txt_y.append(0.03*(Y_up_bnd - Y_lo_bnd) );txt_posi.append('middle center')
+
+    add_polygon(fig,[Err_bnd_999 + 0.01*(X_up_bnd - X_lo_bnd), Err_bnd_999, Err_bnd_999 - 0.01*(X_up_bnd - X_lo_bnd)],
+                            [Y_lo_bnd, 0.02*(Y_up_bnd - Y_lo_bnd), Y_lo_bnd],'black')
+    txt_list.append('99.9%'); txt_x.append(Err_bnd_999); txt_y.append(0.03*(Y_up_bnd - Y_lo_bnd) );txt_posi.append('middle center')
+
+    add_polygon(fig,[X_up_bnd, 0.98*(X_up_bnd - X_lo_bnd) + X_lo_bnd, X_up_bnd],
+                            [Sig_bnd_68 + 0.01*(Y_up_bnd - Y_lo_bnd), Sig_bnd_68, Sig_bnd_68 - 0.01*(Y_up_bnd - Y_lo_bnd)],'black')
+    txt_list.append('68%'); txt_x.append(0.925*(X_up_bnd - X_lo_bnd) + X_lo_bnd); txt_y.append(Sig_bnd_68 );txt_posi.append('bottom right')
+
+    add_polygon(fig,[X_up_bnd, 0.98*(X_up_bnd - X_lo_bnd) + X_lo_bnd, X_up_bnd],
+                            [Sig_bnd_95 + 0.01*(Y_up_bnd - Y_lo_bnd), Sig_bnd_95, Sig_bnd_95 - 0.01*(Y_up_bnd - Y_lo_bnd)],'black')
+    txt_list.append('95%'); txt_x.append(0.925*(X_up_bnd - X_lo_bnd) + X_lo_bnd); txt_y.append(Sig_bnd_95 );txt_posi.append('bottom right')
+
+    add_polygon(fig,[X_up_bnd, 0.98*(X_up_bnd - X_lo_bnd) + X_lo_bnd, X_up_bnd],
+                            [Sig_bnd_999 + 0.01*(Y_up_bnd - Y_lo_bnd), Sig_bnd_999, Sig_bnd_999 - 0.01*(Y_up_bnd - Y_lo_bnd)],'black')
+    txt_list.append('99.9%'); txt_x.append(0.9*(X_up_bnd - X_lo_bnd) + X_lo_bnd); txt_y.append(Sig_bnd_999 );txt_posi.append('bottom right')
+
+    add_textII(fig,txt_list, txt_x,txt_y,txt_posi,'black')
+
+    for k in Measures.index:
+        add_patch  (fig,Measures.loc[k,'X'],Measures.loc[k,'Y'],RGB_bar[Measures.loc[k,'c_idx']])
+
+    fig.update_xaxes(range=[X_lo_bnd, X_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
+    fig.update_yaxes(range=[Y_lo_bnd, Y_up_bnd], showgrid=True,title_text= r'$VPL_{'+Name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
+    # pl.dump(fig, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//vertical.pickle', 'wb'))
+    return fig
+#-----------------------------------------------------------------------------------------------------------------------
+
 def vplstat(VPL,VPE,VAL1,VAL2,src_name):
     # other colors used in the plot
     #color1 = [134/255 134/255 134/255] % - dark gray
@@ -304,19 +410,7 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
         df_STFD.loc[idx,'Z']     = Z
         df_STFD.loc[idx,'c_idx'] = c_idx
 
-
-#==============================================================================
-
-    fig_vplstat = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=('Vertical Performance ['+str(seconds)+' seconds]', ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
-#    fig_vplstat.update_layout(height = 938, width = 1250,margin = go.layout.Margin(l=300,r=50,b=100,t=100,pad = 4))
-#     fig_vplstat.update_layout(paper_bgcolor="LightSteelBlue",plot_bgcolor="white",margin = go.layout.Margin(l=400,r=300,b=100,t=100,pad = 0))
-    matplt_cmap,color_bar = ColorMap()
-    RGB_bar            = barra_RGB(color_bar) # to generate in  rgb(0.267004,0.004874,0.329415)
-    plot_ColorBar(fig_vplstat,RGB_bar,z_up_bnd)
-
-
     # determine availability and # of integrity failures
-
     i_diag1 = np.unique(np.append( np.where(err_bin == VAL1)[0],
                                    np.where(err_bin == VAL2)[0] ) )
     
@@ -351,107 +445,119 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
     i_avail2 = np.intersect1d( np.where(err_bin[j0]/sig_bin[i0] < 1.0)[0], np.where(sig_bin[i0] < VAL2)[0])
     n_avail2 = np.sum(np.sum(np.diag(data[i0[i_avail2],j0[i_avail2]]))) + np.sum(diagonal[np.append(i_diag2, i_diag4)])
 
+    err_bnd_68 = err_bin[bound2(0.68, np.sum(data, axis=0).T)] + d_err_bin / 2;
+    err_bnd_68 = err_bnd_68[0]
+    err_bnd_95 = err_bin[bound2(0.95, np.sum(data, axis=0).T)] + d_err_bin / 2;
+    err_bnd_95 = err_bnd_95[0]
+    err_bnd_999 = err_bin[bound2(0.999, np.sum(data, axis=0).T)] + d_err_bin / 2;
+    err_bnd_999 = err_bnd_999[0]
+
+    sig_bnd_68 = sig_bin[bound2(0.68, np.sum(data.T, axis=0).T, epochs)] + d_sig_bin / 2;
+    sig_bnd_68 = sig_bnd_68[0]
+    sig_bnd_95 = sig_bin[bound2(0.95, np.sum(data.T, axis=0).T, epochs)] + d_sig_bin / 2;
+    sig_bnd_95 = sig_bnd_95[0]
+    sig_bnd_999 = sig_bin[bound2(0.999, np.sum(data.T, axis=0).T, epochs)] + d_sig_bin / 2;
+    sig_bnd_999 = sig_bnd_999[0]
+
+    # ==============================================================================
+    fig_vplstat = StanfordV([VAL1,VAL2], [x_lo_bnd,x_up_bnd],[y_lo_bnd,y_up_bnd],z_up_bnd,[n_avail1,n_avail2],epochs,seconds,
+                            [n_fail1,n_fail2,n_fail3,n_fail4],n_cont, df_STFD, [err_bnd_68, err_bnd_95, err_bnd_999],
+                            [sig_bnd_68,sig_bnd_95,sig_bnd_999],src_name)
+
+    fig_vplstat.show()
+#-----------------------------------------------------------------------------------------------------------------------
+#                                                     HPLSTAT
+#-----------------------------------------------------------------------------------------------------------------------
+def StanfordH(HAL, X_bnd, Y_bnd, Z_up_bnd, N_avail, Epochs,Seconds, N_fail,N_cont, Measures, Name):
+    X_lo_bnd = X_bnd[0]
+    X_up_bnd = X_bnd[1]
+    Y_lo_bnd = Y_bnd[0]
+    Y_up_bnd = Y_bnd[1]
+    N_fail1 = N_fail[0]
+    N_fail2 = N_fail[1]
+    N_fail3 = N_fail[2]
+    fig = make_subplots(rows=1, cols=2, column_widths=[10, 0.5],
+                                subplot_titles=('Horizontal Performance [' + str(Seconds) + ' seconds]', ""),
+                                specs=[[{"secondary_y": False}, {"secondary_y": True}]])
+
+    matplt_cmap, color_bar = ColorMap()
+    RGB_bar = barra_RGB(color_bar)  # to generate in  rgb(0.267004,0.004874,0.329415)
+    plot_ColorBar(fig, RGB_bar, Z_up_bnd)
 
     txt_list = []
-    txt_x    = []
-    txt_y    = []
+    txt_x = []
+    txt_y = []
     txt_posi = []
-
-#     show the region of IPV operation
-    txt_list.append('IPV Operation'); txt_x.append(0.57*(VAL2 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.95*(VAL2 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
-    
-    if n_avail2/epochs >= 0.999995:
-        txt_list.append('> 99.999%')                               ; txt_x.append(0.53*(VAL2 - x_lo_bnd) + x_lo_bnd); txt_y.append( 0.89*(VAL2 - y_lo_bnd) + y_lo_bnd);txt_posi.append('middle center')
+    # show the region of normal operation
+    txt_list.append('Normal Operation');
+    txt_x.append(0.37 * (HAL - X_lo_bnd) + X_lo_bnd);
+    txt_y.append(0.93 * (HAL - Y_lo_bnd) + Y_lo_bnd);
+    txt_posi.append('middle center')
+    if N_avail / Epochs >= .999995:
+        txt_list.append('> 99.999%');
+        txt_x.append(0.37 * (HAL - X_lo_bnd) + X_lo_bnd);
+        txt_y.append(0.86 * (HAL - Y_lo_bnd) + Y_lo_bnd);
+        txt_posi.append('middle center')
     else:
-        txt_list.append("{:.3f}".format(100.0*n_avail2/epochs)+'%'); txt_x.append(0.57*(VAL2 - x_lo_bnd) + x_lo_bnd); txt_y.append( 0.89*(VAL2 - y_lo_bnd) + y_lo_bnd);txt_posi.append('middle center')
-    # show the region of CAT I operation
-   
-    txt_list.append('CAT I Oper.'); txt_x.append(0.45*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.93*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
+        txt_list.append("{:.3f}".format(100.0 * N_avail / Epochs) + '%');
+        txt_x.append(0.37 * (HAL - X_lo_bnd) + X_lo_bnd);
+        txt_y.append(0.86 * (HAL - Y_lo_bnd) + Y_lo_bnd);
+        txt_posi.append('middle center')
 
-    if n_avail1/epochs >= 0.999995:
-        txt_list.append('> 99.999%')                               ; txt_x.append(0.4*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.84*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
-    else:
-        txt_list.append("{:.3f}".format(100.0*n_avail1/epochs)+'%'); txt_x.append(0.45*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.84*(VAL1 - y_lo_bnd) + y_lo_bnd  );txt_posi.append('middle center')
-    # outline the region of integrity failures
+    # outline the region of integrity failures (RECTANGULO ROJ0)
+    add_polygon(fig, [HAL, HAL, X_up_bnd, X_up_bnd], [Y_lo_bnd, HAL, HAL, Y_lo_bnd], 'rgb(255,114,111)')
+    txt_list.append('HMI');
+    txt_x.append(0.50 * (X_up_bnd - HAL) + HAL);
+    txt_y.append(0.55 * (HAL - Y_lo_bnd) + Y_lo_bnd);
+    txt_posi.append('middle center')
+    txt_list.append('epochs: ' + str(N_fail1));
+    txt_x.append(0.50 * (X_up_bnd - HAL) + HAL);
+    txt_y.append(0.45 * (HAL - Y_lo_bnd) + Y_lo_bnd);
+    txt_posi.append('middle center')
 
-    add_polygon(fig_vplstat,[VAL1, VAL1, VAL2, VAL2, x_up_bnd, x_up_bnd],[y_lo_bnd, VAL1, VAL1, VAL2, VAL2, y_lo_bnd],'rgb(255,114,111)')
-    txt_list.append('HMI');                    txt_x.append(VAL2); txt_y.append(0.5*(VAL2 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
-    txt_list.append('epochs: '+ str(n_fail1)); txt_x.append(VAL2); txt_y.append(0.4*(VAL2 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
+    # outline the region of HPL failures (TRIANGULO inferior)
+    add_polygon(fig, [X_lo_bnd, HAL, HAL], [Y_lo_bnd, HAL, Y_lo_bnd], 'rgb(255,204,203)')
+    txt_list.append('MI');
+    txt_x.append(0.67 * (HAL - X_lo_bnd) + X_lo_bnd), txt_y.append(0.35 * (HAL - Y_lo_bnd) + Y_lo_bnd);
+    txt_posi.append('middle center')
+    txt_list.append('epochs: ' + str(N_fail2));
+    txt_x.append(0.67 * (HAL - X_lo_bnd) + X_lo_bnd), txt_y.append(0.25 * (HAL - Y_lo_bnd) + Y_lo_bnd);
+    txt_posi.append('middle center')
 
-    # outline the lowest region of VPL failures clor2
-    add_polygon(fig_vplstat,[x_lo_bnd, VAL1, VAL1],[y_lo_bnd, VAL1, y_lo_bnd],'rgb(255,204,203)')
-    txt_list.append('MI')                    ; txt_x.append(0.67*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.35*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
-    txt_list.append('epochs: '+ str(n_fail2)); txt_x.append(0.67*(VAL1 - x_lo_bnd) + x_lo_bnd); txt_y.append(0.25*(VAL1 - y_lo_bnd) + y_lo_bnd );txt_posi.append('middle center')
+    # outline the region of unavailability  (POLIGONO AMARILLO)
+    add_polygon(fig, [X_lo_bnd, X_up_bnd, X_up_bnd, X_lo_bnd], [HAL, HAL, Y_up_bnd, Y_up_bnd],
+                'rgb(253,255,143)')
+    txt_list.append('System Unavailable');
+    txt_x.append(0.50 * (X_up_bnd - X_lo_bnd) + X_lo_bnd);
+    txt_y.append(0.70 * (Y_up_bnd - HAL) + HAL);
+    txt_posi.append('middle center')
+    txt_list.append('epochs: ' + str(N_cont));
+    txt_x.append(0.50 * (X_up_bnd - X_lo_bnd) + X_lo_bnd);
+    txt_y.append(0.55 * (Y_up_bnd - HAL) + HAL);
+    txt_posi.append('middle center')
 
-    # outline the middle region of VPL failures color 2
-    add_polygon(fig_vplstat,[VAL1, VAL2, VAL2],  [VAL1, VAL2, VAL1],'rgb(255,204,203)')
-    txt_list.append('center')                ; txt_x.append(0.67*(VAL2 - VAL1) + VAL1); txt_y.append(0.39*(VAL2 - VAL1) + VAL1 );txt_posi.append('middle center')
-    txt_list.append('epochs: '+ str(n_fail4)); txt_x.append(0.67*(VAL2 - VAL1) + VAL1); txt_y.append(0.25*(VAL2 - VAL1) + VAL1 );txt_posi.append('middle center')
+    # outline the region where integrity failures and unavailability overlap (TRIANGULO superior)
+    add_polygon(fig, [HAL, X_up_bnd, X_up_bnd], [HAL, Y_up_bnd, HAL], 'rgb(255,158,87)')
+    txt_list.append('MI');
+    txt_x.append(0.5 * (X_up_bnd - HAL) + HAL);
+    txt_y.append(0.325 * (Y_up_bnd - HAL) + HAL);
+    txt_posi.append('middle center')
+    txt_list.append('epochs: ' + str(N_fail3));
+    txt_x.append(0.5 * (X_up_bnd - HAL) + HAL);
+    txt_y.append(0.175 * (Y_up_bnd - HAL) + HAL);
+    txt_posi.append('middle center')
 
-    # outline the region of unavailability color amarillo
-    add_polygon(fig_vplstat,[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[VAL2, VAL2, y_up_bnd, y_up_bnd],'rgb(253,255,143)')
-    txt_list.append('System Unavailable')         ; txt_x.append(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(0.65*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
-    txt_list.append('Alarm Epochs: '+ str(n_cont)); txt_x.append(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(0.35*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
+    add_textII(fig, txt_list, txt_x, txt_y, txt_posi, 'black')
+    for k in Measures.index:
+        add_patch(fig, Measures.loc[k, 'X'], Measures.loc[k, 'Y'], RGB_bar[Measures.loc[k, 'c_idx']])
 
-#     outline the region where integrity failures and unavailability overlap color 4
-    add_polygon(fig_vplstat,[VAL2, x_up_bnd, x_up_bnd],[VAL2, y_up_bnd, VAL2],'rgb(255,153,18)')
-    txt_list.append('MI:')       ; txt_x.append(0.70*(x_up_bnd - VAL2) + VAL2); txt_y.append(0.4*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
-    txt_list.append(str(n_fail3)); txt_x.append(0.70*(x_up_bnd - VAL2) + VAL2); txt_y.append(0.175*(y_up_bnd - VAL2) + VAL2 );txt_posi.append('middle center')
-
-
-#    bnd_68 =err_bin[bound2(0.68 ,np.sum(data,axis=0).T)] + d_err_bin/2;
-#    bnd_95 =err_bin[bound2(0.95 ,np.sum(data,axis=0).T)] + d_err_bin/2;
-#    bnd_999=err_bin[bound2(0.999,np.sum(data,axis=0).T)] + d_err_bin/2;
-    
-    err_bnd_68  = err_bin[bound2(0.68 , np.sum(data,axis=0).T)] + d_err_bin/2;err_bnd_68  = err_bnd_68[0]
-    err_bnd_95  = err_bin[bound2(0.95 , np.sum(data,axis=0).T)] + d_err_bin/2;err_bnd_95  = err_bnd_95[0]
-    err_bnd_999 = err_bin[bound2(0.999, np.sum(data,axis=0).T)] + d_err_bin/2;err_bnd_999 = err_bnd_999[0]
-    
-#    print(err_bnd_68,err_bnd_68[0])
-
-    add_polygon(fig_vplstat,[err_bnd_68 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_68, err_bnd_68 - 0.01*(x_up_bnd - x_lo_bnd)],
-                            [y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd] ,'black')
-    txt_list.append('68%'); txt_x.append(err_bnd_68); txt_y.append(0.03*(y_up_bnd - y_lo_bnd) );txt_posi.append('middle center')
-
-    add_polygon(fig_vplstat,[err_bnd_95 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_95, err_bnd_95 - 0.01*(x_up_bnd - x_lo_bnd)],
-                            [y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd],'black')
-    txt_list.append('95%'); txt_x.append(err_bnd_95); txt_y.append(0.03*(y_up_bnd - y_lo_bnd) );txt_posi.append('middle center')
-
-    add_polygon(fig_vplstat,[err_bnd_999 + 0.01*(x_up_bnd - x_lo_bnd), err_bnd_999, err_bnd_999 - 0.01*(x_up_bnd - x_lo_bnd)], 
-                            [y_lo_bnd, 0.02*(y_up_bnd - y_lo_bnd), y_lo_bnd],'black')
-    txt_list.append('99.9%'); txt_x.append(err_bnd_999); txt_y.append(0.03*(y_up_bnd - y_lo_bnd) );txt_posi.append('middle center')
-
-    sig_bnd_68  = sig_bin[bound2(0.68 ,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2;sig_bnd_68  =sig_bnd_68[0]
-    sig_bnd_95  = sig_bin[bound2(0.95 ,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2;sig_bnd_95  =sig_bnd_95[0]
-    sig_bnd_999 = sig_bin[bound2(0.999,np.sum(data.T,axis=0).T, epochs)] + d_sig_bin/2;sig_bnd_999 =sig_bnd_999[0]
-
-
-    add_polygon(fig_vplstat,[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd],
-                            [sig_bnd_68 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_68, sig_bnd_68 - 0.01*(y_up_bnd - y_lo_bnd)],'black')
-    txt_list.append('68%'); txt_x.append(0.925*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(sig_bnd_68 );txt_posi.append('bottom right')
-
-
-    add_polygon(fig_vplstat,[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd],
-                            [sig_bnd_95 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_95, sig_bnd_95 - 0.01*(y_up_bnd - y_lo_bnd)],'black')
-    txt_list.append('95%'); txt_x.append(0.925*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(sig_bnd_95 );txt_posi.append('bottom right')
-
-    add_polygon(fig_vplstat,[x_up_bnd, 0.98*(x_up_bnd - x_lo_bnd) + x_lo_bnd, x_up_bnd], 
-                            [sig_bnd_999 + 0.01*(y_up_bnd - y_lo_bnd), sig_bnd_999, sig_bnd_999 - 0.01*(y_up_bnd - y_lo_bnd)],'black')
-    txt_list.append('99.9%'); txt_x.append(0.9*(x_up_bnd - x_lo_bnd) + x_lo_bnd); txt_y.append(sig_bnd_999 );txt_posi.append('bottom right')
-
-
-    add_textII(fig_vplstat,txt_list, txt_x,txt_y,txt_posi,'black')
-
-    for k in df_STFD.index:
-        add_patch  (fig_vplstat,df_STFD.loc[k,'X'],df_STFD.loc[k,'Y'],RGB_bar[df_STFD.loc[k,'c_idx']])
-
-    fig_vplstat.update_xaxes(range=[x_lo_bnd, x_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
-    fig_vplstat.update_yaxes(range=[y_lo_bnd, y_up_bnd], showgrid=True,title_text= r'$VPL_{'+src_name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
-    pl.dump(fig_vplstat, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//vertical.pickle', 'wb'))
-    fig_vplstat.show()
-#------------------------------------------------------------------------------
-#                                HPLSTAT
-#------------------------------------------------------------------------------
+    fig.update_xaxes(range=[X_lo_bnd, X_up_bnd], showgrid=True, title_text='Error [m]', gridwidth=1,
+                             gridcolor='LightPink', row=1, col=1)
+    fig.update_yaxes(range=[Y_lo_bnd, Y_up_bnd], showgrid=True, title_text=r'$HPL_{' + Name + '} [m]$',
+                             gridwidth=1, gridcolor='LightPink', row=1, col=1)
+    # pl.dump(fig_hplstat, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//horizontal.pickle', 'wb'))
+    return fig
+#----------------------------------------------------------------------------------------------------------------------
 def hplstat(HPL,HPE,HAL,src_name):
 
     # size of VPL, which should be the same for VPE as well
@@ -530,17 +636,6 @@ def hplstat(HPL,HPE,HAL,src_name):
         df_STFD.loc[idx,'c_idx'] = c_idx
 
 
-#==============================================================================
-
-    fig_plotly = make_subplots(rows=1, cols=2, column_widths=[10, 0.5], subplot_titles=('Horizontal Performance ['+str(seconds)+' seconds]', ""),specs=[[{"secondary_y": False}, {"secondary_y": True}]] )
-#    fig_plotly.update_layout(height = 938, width = 1250,margin = go.layout.Margin(l=100,r=200,b=100,t=50,pad = 5))
-#     fig_plotly.update_layout(paper_bgcolor="LightSteelBlue",plot_bgcolor="white",margin = go.layout.Margin(l=400,r=300,b=100,t=100,pad = 0))
-#    fig_plotly.update_layout( autosize=True)
-   
-    matplt_cmap,color_bar = ColorMap()
-    RGB_bar            = barra_RGB(color_bar) # to generate in  rgb(0.267004,0.004874,0.329415)
-    plot_ColorBar(fig_plotly,RGB_bar,z_up_bnd)
-
     # determine availability and # of integrity failures
     i_diag1 = np.where(err_bin == HAL);
     i_diag2 = np.where(err_bin < HAL);
@@ -561,59 +656,16 @@ def hplstat(HPL,HPE,HAL,src_name):
     n_fail3 = np.sum( np.sum( np.diag( data[i0[i_fail3],j0[i_fail3]] ) ) ) - np.sum(diagonal[i_diag3])
 
     i_cont  = np.where(sig_bin[i0] >= HAL)[0]
-
     n_cont  = np.sum( np.sum( np.diag(data[i0[i_cont],j0[i_cont]])));
-    
-    #i_avail = find(err_bin(j) < HAL & sig_bin(i) < HAL);
-    
+
     cond1   = np.where(err_bin[j0]/sig_bin[i0] < 1.0)[0]
     cond2   = np.where(sig_bin[i0] < HAL)[0]
     i_avail = np.intersect1d(cond1, cond2)
     n_avail = np.sum( np.sum( np.diag( data[i0[i_avail],j0[i_avail]] ) ) ) + np.sum(diagonal[i_diag2])
-    
-    txt_list = []
-    txt_x    = []
-    txt_y    = []
-    
-    # show the region of normal operation
-    txt_list.append('Normal Operation'); txt_x.append(0.37*(HAL - x_lo_bnd) + x_lo_bnd); txt_y.append( 0.93*(HAL - y_lo_bnd) + y_lo_bnd)
-    if  n_avail/epochs >= .999995:
-        txt_list.append('> 99.999%');txt_x.append(0.37*(HAL - x_lo_bnd) + x_lo_bnd);txt_y.append(0.86*(HAL - y_lo_bnd) + y_lo_bnd)
-    else:
-        txt_list.append("{:.3f}".format(100.0*n_avail/epochs)+'%'); txt_x.append(0.37*(HAL - x_lo_bnd) + x_lo_bnd);txt_y.append(0.86*(HAL - y_lo_bnd) + y_lo_bnd)
-   
-    # outline the region of integrity failures (RECTANGULO ROJ0)
-    add_polygon(fig_plotly,[HAL,HAL,x_up_bnd,x_up_bnd],[y_lo_bnd,HAL,HAL,y_lo_bnd],'rgb(255,114,111)')
-    txt_list.append('HMI');txt_x.append(0.50*(x_up_bnd - HAL) + HAL);txt_y.append( 0.55*(HAL - y_lo_bnd) + y_lo_bnd)
-    txt_list.append('epochs: '+ str(n_fail1));txt_x.append(0.50*(x_up_bnd - HAL) + HAL);txt_y.append( 0.45*(HAL - y_lo_bnd) + y_lo_bnd)
-    
-    # outline the region of HPL failures (TRIANGULO inferior)
-    add_polygon(fig_plotly,[x_lo_bnd,HAL,HAL],[y_lo_bnd,HAL,y_lo_bnd],'rgb(255,204,203)')
-    txt_list.append('MI'); txt_x.append( 0.67*(HAL - x_lo_bnd) + x_lo_bnd) , txt_y.append(0.35*(HAL - y_lo_bnd) + y_lo_bnd)
-    txt_list.append('epochs: '+ str(n_fail2));txt_x.append(0.67*(HAL - x_lo_bnd) + x_lo_bnd) , txt_y.append(0.25*(HAL - y_lo_bnd) + y_lo_bnd)
-    
-    # outline the region of unavailability  (POLIGONO AMARILLO)
-    add_polygon(fig_plotly,[x_lo_bnd, x_up_bnd, x_up_bnd, x_lo_bnd],[HAL, HAL, y_up_bnd, y_up_bnd],'rgb(253,255,143)')
-    txt_list.append('System Unavailable');txt_x.append(0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd);txt_y.append(0.70*(y_up_bnd - HAL) + HAL )
-    txt_list.append('epochs: '+ str(n_cont));txt_x.append( 0.50*(x_up_bnd - x_lo_bnd) + x_lo_bnd);txt_y.append(0.55*(y_up_bnd - HAL) + HAL )
-    
-    # outline the region where integrity failures and unavailability overlap (TRIANGULO superior)
-    add_polygon(fig_plotly,[HAL, x_up_bnd, x_up_bnd],[HAL, y_up_bnd, HAL],'rgb(255,158,87)')
-    txt_list.append('MI');txt_x.append(0.5*(x_up_bnd - HAL) + HAL);txt_y.append(0.325*(y_up_bnd - HAL) + HAL )
-    txt_list.append('epochs: '+ str(n_fail3));txt_x.append(0.5*(x_up_bnd - HAL) + HAL);txt_y.append(0.175*(y_up_bnd - HAL) + HAL )
-    
-    add_text(fig_plotly,txt_list, txt_x,txt_y,'black')
 
-    
-    for k in df_STFD.index:
-        add_patch  (fig_plotly,df_STFD.loc[k,'X'],df_STFD.loc[k,'Y'],RGB_bar[df_STFD.loc[k,'c_idx']])
-
-    fig_plotly.update_xaxes(range=[x_lo_bnd, x_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
-    fig_plotly.update_yaxes(range=[y_lo_bnd, y_up_bnd], showgrid=True,title_text= r'$HPL_{'+src_name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
-    pl.dump(fig_plotly, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//horizontal.pickle', 'wb'))
-    fig_plotly.show()
-    
-
+    # ==============================================================================
+    fig_hplstat= StanfordH(HAL, [x_lo_bnd,x_up_bnd],[y_lo_bnd,y_up_bnd], z_up_bnd, n_avail, epochs, seconds, [n_fail1,n_fail2,n_fail3], n_cont, df_STFD, src_name)
+    fig_hplstat.show()
 #------------------------------------------------------------------------------
 
     
