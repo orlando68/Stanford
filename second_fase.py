@@ -28,15 +28,11 @@ def list_files(directory, extension):
 
 path = 'C://OPG106300//PERSONAL//JustAnIlusion//GOOD//InputDataSets//scenario2//RX DATA//'
 files = list_files(path,'csv')
-file_name = 'MEAS_test_10Hz_PC_20190312_002.csv'
 path = 'C://OPG106300//PERSONAL//JustAnIlusion//GOOD//InputDataSets//scenario2_reduced//'
-file_name = 'motion_V1_10Hz_reduced_KK.csv'
-#file_name = files[5]
-print(file_name)
+
+"""
+file_name = 'motion_V1_10Hz_reduced.csv'
 data = pd.read_csv(path + file_name) 
-
-
-
 plt.rcParams['legend.fontsize'] = 10
 
 fig = plt.figure()
@@ -54,5 +50,8 @@ y = data['Pos_Y'].values
 z = data['Pos_Z'].values
 ax.plot(x, y, z, label='parametric curve')
 ax.legend()
-
 plt.show()
+"""
+file_name = 'MEAS_test_10Hz_PC_20190312_002_reduced.csv'
+print(file_name)
+data = pd.read_csv(path + file_name)

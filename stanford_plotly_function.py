@@ -320,7 +320,7 @@ def StanfordV(VAL, X_bnd, Y_bnd, Z_up_bnd, N_avail, Epochs,Seconds, N_fail,N_con
 
     fig.update_xaxes(range=[X_lo_bnd, X_up_bnd], showgrid=True,title_text='Error [m]', gridwidth=1, gridcolor='LightPink', row=1, col=1)
     fig.update_yaxes(range=[Y_lo_bnd, Y_up_bnd], showgrid=True,title_text= r'$VPL_{'+Name+'} [m]$', gridwidth=1, gridcolor='LightPink', row=1, col=1)
-    # pl.dump(fig, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//vertical.pickle', 'wb'))
+    pl.dump(fig, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//vertical.pickle', 'wb'))
     return fig
 #-----------------------------------------------------------------------------------------------------------------------
 
@@ -359,7 +359,6 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
         if bool1.all() and bool2.all():
             diagonal[k0[i],1] = diagonal[k0[i],1]+1
 
-    
     err_bin       = np.arange(0.125,24.875+0.25,0.25)
     sig_bin       = np.arange(0.125,24.875+0.25,0.25)
 
@@ -555,7 +554,7 @@ def StanfordH(HAL, X_bnd, Y_bnd, Z_up_bnd, N_avail, Epochs,Seconds, N_fail,N_con
                              gridcolor='LightPink', row=1, col=1)
     fig.update_yaxes(range=[Y_lo_bnd, Y_up_bnd], showgrid=True, title_text=r'$HPL_{' + Name + '} [m]$',
                              gridwidth=1, gridcolor='LightPink', row=1, col=1)
-    # pl.dump(fig_hplstat, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//horizontal.pickle', 'wb'))
+    pl.dump(fig, open('C://OPG106300//PERSONAL//JustAnIlusion//GOOD//TURAnalysis//ENTREGABLE//horizontal.pickle', 'wb'))
     return fig
 #----------------------------------------------------------------------------------------------------------------------
 def hplstat(HPL,HPE,HAL,src_name):
