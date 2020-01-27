@@ -64,7 +64,7 @@ def Reverse_ColorBar(Bar_input):
 #[0.1730 , 0.1730 , 0.1730 , 1],[0.1483 , 0.1483 , 0.1483 , 1],[0.1236 , 0.1236 , 0.1236 , 1],[0.0989 , 0.0989 , 0.0989 , 1],
 #[0.0742 , 0.0742 , 0.0742 , 1],[0.0494 , 0.0494 , 0.0494 , 1],[0.0247 , 0.0247 , 0.0247 , 1],[0      , 0      , 0      , 1]     ])
 #matplt_cmap = ListedColormap(color_bar)
-+
+
 def ColorMap():
     cmp_list    = [ 'viridis','Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
                     'YlOrBr' , 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
@@ -357,6 +357,7 @@ def vplstat(VPL,VPE,VAL1,VAL2,src_name):
         bool1 = (k0[i] == j0[i])
         bool2 = abs(VPE[i]) < abs(VPL[i])
         if bool1.all() and bool2.all():
+            print(k0[i])
             diagonal[k0[i],1] = diagonal[k0[i],1]+1
 
     err_bin       = np.arange(0.125,24.875+0.25,0.25)

@@ -20,7 +20,7 @@ import matplotlib.patches as patches
 import pandas as pd
 from matplotlib import cm
 from collections import OrderedDict
-
+import time
 
 #------------------------------------------------------------------------------
 def set_numpy_decimal_places(places, width=0):
@@ -682,9 +682,12 @@ plt.plot(range(rec_pos_UTM.shape[0]),rec_pos_UTM[:,5],'-r')
 #  Plot 4: Vertical Stanford plot 
 #fig = plt.figure()
 #ax = fig.add_subplot(111, projection='3d', facecolor='w') 
-
+start = time.time()
 hplstat(HPL.T,HPE,HAL,'EGNOS')
+print('hrizontal',time.time()-start)
+start = time.time()
 vplstat(VPL.T,VPE,VAL1,VAL2,'EGNOS')
+print('hrizontal',time.time()-start)
 #ax.set_xlim3d(0, 50)
 #ax.set_zlim3d(0, 10)
 #ax.view_init(90, 270)
